@@ -1,0 +1,38 @@
+{
+  "name": "takucatalog",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "test": "dotenv -e .env.test -- vitest run",
+    "db:push:test": "dotenv -e .env.test -- prisma db push"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@clerk/express": "^2.1.12",
+    "@prisma/adapter-mariadb": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "@sentry/node": "^10.52.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "imagekit": "^6.0.0",
+    "zod": "^4.4.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "@types/supertest": "^7.2.0",
+    "dotenv-cli": "^11.0.0",
+    "prisma": "^7.8.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.8"
+  }
+}

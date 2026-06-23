@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// + Updated: June 7, 2026 - Added Logo model and relation to Store
+model Store {
+  id             String         @id @default(uuid())
+  name           String
+  slug           String         @unique
+  countryCode    String
+  phoneNumber    String
+  instagram      String?
+  facebook       String?
+  tiktok         String?
+  currency       String
+  color          String
+  language       String        @default("en")
+
+  userId         String        
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  productTypes   ProductType[]
+  subCategories SubCategory[]
+  products       Product[]
+  bills          Bill[]
+  logo           Logo?
+}
+
+// * New: June 7, 2026 - Added Logo model to store logo information and relation to Store
+model Logo {
+  id        String   @id @default(uuid())
+  url       String
+  fileId    String
+  storeId   String   @unique
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+}
+
+model ProductType {
+  id        String    @id @default(uuid())
+  name      String
+  storeId   String
+  active    Boolean   @default(true)
+  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  products  Product[]
+  subCategories SubCategory[]
+
+  @@index([storeId])
+}
+
+model SubCategory {
+  id        String    @id @default(uuid())
+  name      String
+  storeId   String
+  productTypeId String
+  active   Boolean   @default(true)
+  
+  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  productType ProductType @relation(fields: [productTypeId], references: [id], onDelete: Cascade)
+  products  Product[]
+
+  @@index([storeId])
+}
+
+model Product {
+  id            String           @id @default(uuid())
+  name          String
+  description   String?          @db.Text
+  active        Boolean          @default(true)
+  storeId       String
+  productTypeId String
+  subCategoryId String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  store         Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  type          ProductType      @relation(fields: [productTypeId], references: [id])
+  subCategory   SubCategory      @relation(fields: [subCategoryId], references: [id])
+
+  billDetails   BillDetail[]
+  variants      ProductVariant[]
+  image        Image?
+
+  @@index([storeId])
+  @@index([productTypeId])
+  @@index([subCategoryId])
+}
+
+model ProductVariant {
+  id        String   @id @default(uuid())
+  productId String
+  name      String   // e.g., "Size 40", "100ml", "Blue"
+  price     Decimal  @db.Decimal(10, 2)
+  stock     Int?      @default(0)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  billDetails BillDetail[]
+
+  @@index([productId])
+}
+
+model Image {
+  id        String         @id @default(uuid())
+  url       String
+  fileId  String
+  productId String @unique
+  product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+enum BillStatus {
+  PENDING
+  PAID
+  CANCELLED
+  DELIVERED
+}
+
+model Bill {
+  id            String     @id @default(uuid())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  total         Decimal    @db.Decimal(10, 2)
+  paidAt        DateTime?
+  notes         String?  
+  storeId       String
+  customerName  String?
+  customerEmail String?
+  customerPhone String?
+  customerAddress String?
+  
+  status        BillStatus @default(PENDING)
+
+
+  store         Store        @relation(fields: [storeId], references: [id])
+  billDetails   BillDetail[]
+
+  @@index([storeId])
+  @@index([status])
+}
+
+model BillDetail {
+  id               String  @id @default(uuid())
+  billId           String
+  productId        String
+  productVariantId String
+  quantity         Int
+  price            Decimal @db.Decimal(10, 2) 
+  productName      String 
+  variantName      String?  
+
+  bill           Bill           @relation(fields: [billId], references: [id])
+  product        Product        @relation(fields: [productId], references: [id])
+  productVariant ProductVariant? @relation(fields: [productVariantId], references: [id])
+
+  @@index([billId])
+  @@index([productId])
+  @@index([productVariantId])
+}
