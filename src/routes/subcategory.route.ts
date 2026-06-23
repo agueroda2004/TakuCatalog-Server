@@ -17,14 +17,14 @@ export function subCategoryRoute(subCategoryService: ISubCategoryService) {
   );
 
   router.patch(
-    "/:id",
+    "/:id/store/:storeId",
     requireAuth,
     validateSchema(SubCategorySchema.updateSubCategory),
     controller.updateSubCategory,
   );
 
   router.delete(
-    "/:id",
+    "/:id/store/:storeId",
     requireAuth,
     validateSchema(SubCategorySchema.deleteSubCategory),
     controller.deleteSubCategory,

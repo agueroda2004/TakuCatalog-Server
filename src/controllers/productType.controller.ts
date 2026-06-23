@@ -2,14 +2,12 @@ import type { NextFunction, Response, Request } from "express";
 import { apiResponse } from "../utils/apiResponse";
 import type { IProductTypeService } from "../services/interfaces/productType.interface";
 import type {
-  CreateProductTypeDTO,
-  DeleteProductTypeParams,
   GetProductTypesByStoreDropdownParams,
   GetProductTypesByStoreParams,
   GetProductTypesByStoreQuery,
-  UpdateProductTypeDTO,
-  UpdateProductTypeParams,
+  UpdateProductTypePayload,
 } from "../types/productType";
+import type { CreateProductPayload } from "../types/product";
 
 export class productTypeController {
   constructor(private productTypeService: IProductTypeService) {}
@@ -19,7 +17,7 @@ export class productTypeController {
     res: Response,
     _next: NextFunction,
   ) => {
-    const data = req.body as CreateProductTypeDTO;
+    const data = req.body as CreateProductPayload;
 
     await this.productTypeService.createProductType(data, req.userId);
 
@@ -31,11 +29,12 @@ export class productTypeController {
     res: Response,
     _next: NextFunction,
   ) => {
-    const params = req.params as UpdateProductTypeParams;
-    const data = req.body as UpdateProductTypeDTO;
+    const params = req.params as { id: string; storeId: string };
+    const data = req.body as UpdateProductTypePayload;
 
     await this.productTypeService.updateProductType(
       params.id,
+      params.storeId,
       data,
       req.userId,
     );
@@ -48,9 +47,13 @@ export class productTypeController {
     res: Response,
     _next: NextFunction,
   ) => {
-    const params = req.params as DeleteProductTypeParams;
+    const params = req.params as { id: string; storeId: string };
 
-    await this.productTypeService.deleteProductType(params.id, req.userId);
+    await this.productTypeService.deleteProductType(
+      params.id,
+      params.storeId,
+      req.userId,
+    );
 
     apiResponse.noContent(res);
   };

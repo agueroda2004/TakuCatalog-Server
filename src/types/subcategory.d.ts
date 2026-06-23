@@ -34,3 +34,14 @@ export type SubCategory = {
     products: number;
   };
 };
+
+export type CreateSubCategoryPayload = {
+  name: string;
+  storeId: string;
+  productTypeId: string;
+};
+
+export type UpdateSubCategoryPayload = {
+  name?: string;
+  active?: boolean;
+};

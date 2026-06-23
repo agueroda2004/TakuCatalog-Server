@@ -4,6 +4,7 @@ import type {
   GetSubCategoriesByStoreQuery,
   SubCategory,
   UpdateSubCategoryDTO,
+  UpdateSubCategoryPayload,
 } from "../../types/subcategory";
 
 export interface ISubCategoryService {
@@ -13,10 +14,15 @@ export interface ISubCategoryService {
   ): Promise<void>;
   updateSubCategory(
     id: string,
-    data: UpdateSubCategoryDTO,
+    data: UpdateSubCategoryPayload,
     requesterId: string,
+    storeId: string,
   ): Promise<void>;
-  deleteSubCategory(id: string, requesterId: string): Promise<void>;
+  deleteSubCategory(
+    id: string,
+    requesterId: string,
+    storeId: string,
+  ): Promise<void>;
   getSubCategoriesByStore(
     storeId: string,
     filters: GetSubCategoriesByStoreQuery,

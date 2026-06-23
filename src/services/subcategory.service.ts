@@ -1,30 +1,55 @@
 import ApiErrorResponse from "../errors/apiErrorResponse";
 import prisma from "../lib/prisma";
+import type { IProductTypeRepository } from "../repositories/interfaces/productType.interface";
+import type { ISubCategoryRepository } from "../repositories/interfaces/subcategory.interface";
 import type { PaginatedResponse } from "../types/pagination";
 import type {
-  CreateSubCategoryDTO,
+  CreateSubCategoryPayload,
   GetSubCategoriesByStoreQuery,
   SubCategory,
-  UpdateSubCategoryDTO,
+  UpdateSubCategoryPayload,
 } from "../types/subcategory";
 import { validateStoreOwner } from "../utils/storeAuth";
 import type { ISubCategoryService } from "./interfaces/subcategory.interface";
 
 export class SubCategoryService implements ISubCategoryService {
+  private subCategoryRepository: ISubCategoryRepository;
+  private productTypeRepository: IProductTypeRepository;
+
+  constructor(
+    subCategoryRepository: ISubCategoryRepository,
+    productTypeRepository: IProductTypeRepository,
+  ) {
+    this.subCategoryRepository = subCategoryRepository;
+    this.productTypeRepository = productTypeRepository;
+  }
+
   async createSubCategory(
-    data: CreateSubCategoryDTO,
+    data: CreateSubCategoryPayload,
     requesterId: string,
   ): Promise<void> {
     await validateStoreOwner(data.storeId, requesterId);
 
-    const existingSubCategory = await prisma.subCategory.findFirst({
-      where: {
-        storeId: data.storeId,
-        name: data.name,
-        productTypeId: data.productTypeId,
-      },
-      select: { id: true },
-    });
+    const productTypeExists =
+      await this.productTypeRepository.validateProductTypeInStore(
+        data.productTypeId,
+        data.storeId,
+      );
+
+    if (!productTypeExists) {
+      throw new ApiErrorResponse({
+        statusCode: 404,
+        message: "Product type not found in this store",
+        isOperational: true,
+      });
+    }
+
+    const existingSubCategory =
+      await this.subCategoryRepository.validateSubCategoryName(
+        data.name,
+        data.storeId,
+        data.productTypeId,
+      );
 
     if (existingSubCategory) {
       throw new ApiErrorResponse({
@@ -35,53 +60,35 @@ export class SubCategoryService implements ISubCategoryService {
       });
     }
 
-    await prisma.subCategory.create({
-      data: {
-        name: data.name,
-        storeId: data.storeId,
-        productTypeId: data.productTypeId,
-      },
-      select: {
-        id: true,
-      },
-    });
+    await this.subCategoryRepository.createSubCategory(data);
   }
 
   async updateSubCategory(
     id: string,
-    data: UpdateSubCategoryDTO,
+    data: UpdateSubCategoryPayload,
     requesterId: string,
+    storeId: string,
   ): Promise<void> {
-    const subCategory = await prisma.subCategory.findUnique({
-      where: { id: id },
-      select: {
-        id: true,
-        name: true,
-        active: true,
-        productTypeId: true,
-        storeId: true,
-      },
-    });
+    await validateStoreOwner(storeId, requesterId);
+
+    const subCategory =
+      await this.subCategoryRepository.validateSubCategoryInStore(id, storeId);
 
     if (!subCategory) {
       throw new ApiErrorResponse({
         statusCode: 404,
-        message: "Subcategory not found",
+        message: "Subcategory not found in this store",
         isOperational: true,
       });
     }
 
-    await validateStoreOwner(subCategory.storeId, requesterId);
-
     if (data.name && data.name !== subCategory.name) {
-      const existingSubCategory = await prisma.subCategory.findFirst({
-        where: {
-          storeId: subCategory.storeId,
-          name: data.name,
-          id: { not: subCategory.id },
-        },
-        select: { id: true },
-      });
+      const existingSubCategory =
+        await this.subCategoryRepository.validateSubCategoryName(
+          data.name,
+          storeId,
+          subCategory.productTypeId,
+        );
 
       if (existingSubCategory) {
         throw new ApiErrorResponse({
@@ -93,48 +100,29 @@ export class SubCategoryService implements ISubCategoryService {
       }
     }
 
-    const dataToUpdate: { name?: string; active?: boolean } = {};
-
-    if (data.name !== undefined) dataToUpdate["name"] = data.name;
-    if (data.active !== undefined) dataToUpdate["active"] = data.active;
-
-    if (Object.keys(dataToUpdate).length === 0) {
-      throw new ApiErrorResponse({
-        statusCode: 400,
-        message: "No valid fields provided for update",
-        isOperational: true,
-      });
-    }
-
-    await prisma.subCategory.update({
-      where: { id: subCategory.id },
-      data: { ...dataToUpdate },
-      select: { id: true },
-    });
+    await this.subCategoryRepository.updateSubCategory(id, data);
   }
 
-  async deleteSubCategory(id: string, requesterId: string): Promise<void> {
-    const subCategory = await prisma.subCategory.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        storeId: true,
-        products: {
-          take: 1,
-          select: { id: true },
-        },
-      },
-    });
+  async deleteSubCategory(
+    id: string,
+    requesterId: string,
+    storeId: string,
+  ): Promise<void> {
+    await validateStoreOwner(storeId, requesterId);
+
+    const subCategory =
+      await this.subCategoryRepository.validateSubCategoryHasRecords(
+        id,
+        storeId,
+      );
 
     if (!subCategory) {
       throw new ApiErrorResponse({
         statusCode: 404,
-        message: "Subcategory not found",
+        message: "Subcategory not found in this store",
         isOperational: true,
       });
     }
-
-    await validateStoreOwner(subCategory.storeId, requesterId);
 
     const hasProducts = subCategory.products.length > 0;
 
@@ -146,10 +134,7 @@ export class SubCategoryService implements ISubCategoryService {
       });
     }
 
-    await prisma.subCategory.delete({
-      where: { id: subCategory.id },
-      select: { id: true },
-    });
+    await this.subCategoryRepository.deleteSubCategory(id, storeId);
   }
 
   async getSubCategoriesByStore(
@@ -197,6 +182,7 @@ export class SubCategoryService implements ISubCategoryService {
         },
         take: limit,
         skip: skip,
+        orderBy: { createdAt: "desc" },
       }),
       await prisma.subCategory.count({
         where: where,

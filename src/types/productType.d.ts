@@ -42,3 +42,13 @@ export type updateProductTypeData = {
   name?: string;
   active?: boolean;
 };
+
+export type CreateProductTypePayload = {
+  name: string;
+  storeId: string;
+};
+
+export type UpdateProductTypePayload = {
+  name?: string;
+  active?: boolean;
+};

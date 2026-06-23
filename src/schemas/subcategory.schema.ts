@@ -25,16 +25,14 @@ export const SubCategorySchema = {
       active: z.boolean().optional(),
     }),
     params: z.object({
-      id: z
-        .string({ error: "SubCategory ID is required" })
-        .uuid("Invalid SubCategory ID format"),
+      id: z.string({ error: "SubCategory ID is required" }),
+      storeId: z.string({ error: "Store ID is required" }),
     }),
   }),
   deleteSubCategory: z.object({
     params: z.object({
-      id: z
-        .string({ error: "SubCategory ID is required" })
-        .uuid("Invalid SubCategory ID format"),
+      id: z.string({ error: "SubCategory ID is required" }),
+      storeId: z.string({ error: "Store ID is required" }),
     }),
   }),
 

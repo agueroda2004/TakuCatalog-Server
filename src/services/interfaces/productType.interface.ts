@@ -14,11 +14,16 @@ export interface IProductTypeService {
 
   updateProductType(
     id: string,
+    storeId: string,
     data: UpdateProductTypeDTO,
     requesterId: string,
   ): Promise<void>;
 
-  deleteProductType(id: string, requesterId: string): Promise<void>;
+  deleteProductType(
+    id: string,
+    storeId: string,
+    requesterId: string,
+  ): Promise<void>;
 
   getProductTypesByStore(
     storeId: string,

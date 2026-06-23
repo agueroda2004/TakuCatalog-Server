@@ -3,12 +3,10 @@ import type { ISubCategoryService } from "../services/interfaces/subcategory.int
 
 import { apiResponse } from "../utils/apiResponse";
 import type {
-  CreateSubCategoryDTO,
-  DeleteSubCategoryParams,
+  CreateSubCategoryPayload,
   GetSubCategoriesByStoreParams,
   GetSubCategoriesByStoreQuery,
-  UpdateSubCategoryDTO,
-  UpdateSubCategoryParams,
+  UpdateSubCategoryPayload,
 } from "../types/subcategory";
 
 export class subCategoryController {
@@ -19,7 +17,7 @@ export class subCategoryController {
     res: Response,
     _next: NextFunction,
   ) => {
-    const data = req.body as CreateSubCategoryDTO;
+    const data = req.body as CreateSubCategoryPayload;
 
     await this.subCategoryService.createSubCategory(data, req.userId);
 
@@ -31,13 +29,14 @@ export class subCategoryController {
     res: Response,
     _next: NextFunction,
   ) => {
-    const params = req.params as UpdateSubCategoryParams;
-    const data = req.body as UpdateSubCategoryDTO;
+    const params = req.params as { id: string; storeId: string };
+    const data = req.body as UpdateSubCategoryPayload;
 
     await this.subCategoryService.updateSubCategory(
       params.id,
       data,
       req.userId,
+      params.storeId,
     );
 
     apiResponse.noContent(res);
@@ -48,9 +47,13 @@ export class subCategoryController {
     res: Response,
     _next: NextFunction,
   ) => {
-    const params = req.params as DeleteSubCategoryParams;
+    const params = req.params as { id: string; storeId: string };
 
-    await this.subCategoryService.deleteSubCategory(params.id, req.userId);
+    await this.subCategoryService.deleteSubCategory(
+      params.id,
+      req.userId,
+      params.storeId,
+    );
 
     apiResponse.noContent(res);
   };

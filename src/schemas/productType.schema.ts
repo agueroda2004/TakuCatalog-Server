@@ -22,16 +22,14 @@ export const ProductTypeSchema = {
       active: z.boolean().optional(),
     }),
     params: z.object({
-      id: z
-        .string({ error: "Product type ID is required" })
-        .uuid("Invalid product type ID format"),
+      id: z.string({ error: "Product type ID is required" }),
+      storeId: z.string({ error: "Store ID is required" }),
     }),
   }),
   deleteProductType: z.object({
     params: z.object({
-      id: z
-        .string({ error: "Product type ID is required" })
-        .uuid("Invalid product type ID format"),
+      id: z.string({ error: "Product type ID is required" }),
+      storeId: z.string({ error: "Store ID is required" }),
     }),
   }),
   getProductTypeByStore: z.object({

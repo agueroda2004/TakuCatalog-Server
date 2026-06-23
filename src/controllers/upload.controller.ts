@@ -6,18 +6,13 @@ export const getAuthParams = async (req: any, res: any) => {
     req.params.storeId,
     req.params.folderName,
   );
-  return apiResponse.success(
+  return apiResponse.success({
     res,
-    200,
-    authParams,
-    "Auth params generated successfully",
-  );
+    status: 200,
+    data: authParams,
+  });
 };
 export const deleteImage = async (req: any, res: any) => {
   const { fileId } = req.params;
-  const result = await deleteImageService(fileId);
-
-  if (!result) {
-    return apiResponse.error(res, 500, "Failed to delete image from ImageKit");
-  }
+  await deleteImageService(fileId);
 };

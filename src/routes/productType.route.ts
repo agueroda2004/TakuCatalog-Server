@@ -17,14 +17,14 @@ export function productTypeRoute(productTypeService: IProductTypeService) {
   );
 
   router.patch(
-    "/:id",
+    "/:id/store/:storeId",
     requireAuth,
     validateSchema(ProductTypeSchema.updateProductType),
     controller.updateProductType,
   );
 
   router.delete(
-    "/:id",
+    "/:id/store/:storeId",
     requireAuth,
     validateSchema(ProductTypeSchema.deleteProductType),
     controller.deleteProductType,
