@@ -40,7 +40,7 @@ export class ProductTypeRepository implements IProductTypeRepository {
     });
   }
 
-  async validateProductTypeInStore(productTypeId: string, storeId: string) {
+  async validateProductType(productTypeId: string, storeId: string) {
     return await prisma.productType.findFirst({
       where: {
         id: productTypeId,
